@@ -19,6 +19,7 @@ use SilverStripe\ORM\Queries\SQLConditionGroup;
 use SilverStripe\ORM\Queries\SQLDelete;
 use SilverStripe\ORM\Queries\SQLSelect;
 use SilverStripe\View\ArrayData;
+use function strpos;
 use TractorCow\Fluent\Model\Locale;
 use TractorCow\Fluent\State\FluentState;
 
@@ -311,11 +312,24 @@ class FluentExtension extends DataExtension
 
     public function augmentSQL(SQLSelect $query, DataQuery $dataQuery = null)
     {
+        //Temp fix to enable search when Fluent enabled
+        if (strpos($_SERVER['REQUEST_URI'], '/SearchForm') > 0){
+            return;
+        }
+
         $locale = $this->getDataQueryLocale($dataQuery);
         if (!$locale) {
             return;
         }
-
+        
+        if (strpos( $query->sql(), 'openingstijden')){
+        echo 'VOOR: ';
+        echo $query->sql();
+        echo '<br>';
+//            die;
+        }
+    
+    
         // Select locale as literal
         $query->selectField(Convert::raw2sql($locale->Locale, true), 'Locale');
 
@@ -394,13 +408,7 @@ class FluentExtension extends DataExtension
                     // Wrap sort in group to prevent dataquery messing it up
                     unset($order[$column]);
                     $order["({$localisedColumn})"] = $direction;
-                } else {
-                    unset($order[$column]);
-                    $order[$column] = $direction;
                 }
-            } else {
-                unset($order[$column]);
-                $order[$column] = $direction;
             }
         }
         $query->setOrderBy($order);
@@ -418,13 +426,28 @@ class FluentExtension extends DataExtension
             }
 
             // Apply substitutions
-            $localisedPredicate = str_replace($conditionSearch, $conditionReplace, $predicate);
+            //Temp fix to enable search when Fluent enabled
+//            if (! strpos($_SERVER['REQUEST_URI'], '/SearchForm') > 0){
+                $localisedPredicate = str_replace($conditionSearch, $conditionReplace, $predicate);
+//            } else {
+//                $localisedPredicate = $predicate;
+//            }
+            
 
             $where[$index] = [
                 $localisedPredicate => $parameters
             ];
         }
         $query->setWhere($where);
+        
+        if (strpos( $query->sql(), 'openingstijden')) {
+            echo 'NA: ';
+            echo $query->sql();
+            echo '<br>';
+        }
+        $aaanewQueyr = $query->sql();
+        $test=1;
+        
     }
 
     /**
@@ -628,6 +651,12 @@ class FluentExtension extends DataExtension
      */
     public function getLocalisedTable($tableName, $locale = '')
     {
+        
+        //Temp fix to enable search when Fluent enabled
+//        if (strpos($_SERVER['REQUEST_URI'], '/SearchForm' && $locale) > 0){
+            return $tableName;
+//        }
+        
         $localisedTable = $tableName . '_' . self::SUFFIX;
         if ($locale) {
             $localisedTable .= '_' . $locale;
