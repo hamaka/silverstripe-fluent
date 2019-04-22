@@ -1,5 +1,5 @@
 {
-    "name": "hamaka/silverstripe-fluent",
+    "name": "tractorcow/silverstripe-fluent",
     "description": "Simple localisation for Silverstripe",
     "type": "silverstripe-vendormodule",
     "keywords": [
